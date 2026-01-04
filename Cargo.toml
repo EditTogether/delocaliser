@@ -1,0 +1,30 @@
+[package]
+name = "delocaliser"
+version = "0.1.0"
+edition = "2021"
+authors = ["EditTogether Contributors"]
+description = "Privacy-preserving photo post-processing to defeat visual geolocation"
+license = "GPL-3.0"
+repository = "https://github.com/EditTogether/delocaliser"
+readme = "README.md"
+keywords = ["privacy", "geolocation", "adversarial", "image-processing"]
+categories = ["multimedia::images", "command-line-utilities"]
+
+[dependencies]
+# Core dependencies will be added as implementation progresses
+
+[dev-dependencies]
+# Test dependencies will be added as implementation progresses
+
+[workspace]
+members = [
+    "core",
+    "attacks",
+    "rewrite",
+    "eval",
+    "ui",
+]
+
+[[bin]]
+name = "delocaliser"
+path = "src/main.rs"
