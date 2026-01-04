@@ -211,10 +211,111 @@ For initial development, we target the **Country** tier:
 - 4K image: ≤24h in Max mode on 2022 desktop
 - 1080p image: ≤10 min in Fast mode
 
-**Hardware baseline:**
-- CPU: 8-core desktop processor (2022 vintage)
-- GPU: Optional, NVIDIA RTX 3080 or equivalent
-- RAM: 32 GB
+## Hardware Requirements
+
+This section formalizes the "2022 desktop" requirement into concrete compute and memory specifications. These are initial sizing estimates that will be validated by telemetry once implementation progresses.
+
+### Reference Hardware Classes
+
+**Baseline Configuration (Fast mode, 1080p ≤10 min):**
+
+| Component | Specification | Reference |
+|-----------|---------------|-----------|
+| CPU | 8-core/16-thread, 3.8-4.7 GHz (e.g., AMD Ryzen 7 5800X, Intel i7-12700K) | AMD Zen 3 / Intel Alder Lake |
+| GPU | RTX 3060-class or equivalent | NVIDIA Ampere GA106 |
+| System RAM | 32 GB DDR4-3200 | - |
+| GPU VRAM | 12 GB GDDR6 | - |
+| Storage | 100 GB free on NVMe SSD | - |
+
+**Recommended Configuration (Max mode, 4K ≤24h):**
+
+| Component | Specification | Reference |
+|-----------|---------------|-----------|
+| CPU | 8-16 core, 3.8-5.0 GHz | AMD Zen 3/4 or Intel 12th/13th Gen |
+| GPU | RTX 3080/3090-class or equivalent | NVIDIA Ampere GA102 |
+| System RAM | 64 GB DDR4-3200 or DDR5 | - |
+| GPU VRAM | 24 GB GDDR6X | - |
+| Storage | 300 GB free on NVMe SSD | - |
+
+### Compute Requirements (FLOPS)
+
+**CPU (FP32):**
+- Baseline: ≥0.5 TFLOPS FP32 peak (AVX2/FMA)
+- Recommended: ≥1.5 TFLOPS FP32 peak
+
+The CPU handles orchestration, OCR (Tesseract), and pre/post-processing. Most compute-intensive stages are GPU-accelerated.
+
+**GPU (FP32/FP16):**
+
+| Tier | FP32 | FP16/Tensor | Reference GPU |
+|------|------|-------------|---------------|
+| Baseline | ≥12 TFLOPS | ≥100 TFLOPS | RTX 3060 (12.7 TFLOPS FP32) |
+| Recommended | ≥30 TFLOPS | ≥240 TFLOPS | RTX 3080 (29.8 TFLOPS FP32) |
+
+These specifications are derived from the NVIDIA Ampere GA102 GPU Architecture whitepaper. The RTX 3080 achieves 29.8 TFLOPS FP32 and 238 TFLOPS with sparsity-enabled Tensor Cores.
+
+### Memory Requirements
+
+**System RAM:**
+- Baseline: 32 GB (peak resident)
+- Recommended: 64 GB (peak resident)
+
+Rationale: High-resolution image buffers (4K RGBA = ~32 MB per buffer), multiple intermediate processing stages, OCR artifacts, optional caching of tiles/crops, and evaluation logging. The 64 GB recommendation provides headroom for Max mode processing with multiple large models loaded.
+
+**GPU VRAM:**
+- Baseline: 12 GB (peak resident)
+- Recommended: 24 GB (peak resident)
+
+Rationale: VRAM is typically the binding constraint. Approximate model memory requirements:
+
+| Model | Approximate VRAM |
+|-------|------------------|
+| Grounded-SAM (ViT-H) | 4-6 GB |
+| CLIP (ViT-L/14) | 1-2 GB |
+| Stable Diffusion 1.5 | 4-6 GB |
+| Adversarial optimization (gradients) | 2-8 GB |
+| Image buffers (4K tiled) | 1-2 GB |
+
+With 12 GB VRAM, careful batching and tiling is required. With 24 GB VRAM, larger tile sizes and simultaneous model loading become feasible, significantly reducing processing time.
+
+**Storage (NVM):**
+- Baseline: ≥100 GB free on NVMe SSD
+- Recommended: ≥300 GB free on NVMe SSD
+
+Breakdown:
+- Model weights: ~20-50 GB (multiple large models)
+- Scratch space for tiling/intermediates: ~10-50 GB per session
+- Evaluation datasets: ~50-200 GB
+- Cache and logs: ~10 GB
+
+NVMe is strongly preferred over SATA SSD or HDD to avoid I/O bottlenecks during tiled processing and model loading.
+
+### Processing Strategy Notes
+
+**4K Processing (Max mode):**
+- Uses tiled processing to fit within VRAM constraints
+- Tile size: 512x512 to 1024x1024 depending on available VRAM
+- Overlap: 64-128 pixels for seamless blending
+- Multiple diffusion passes may be required for large inpaint regions
+
+**1080p Processing (Fast mode):**
+- May process entire image in single pass with 12+ GB VRAM
+- Reduced diffusion steps (20-30 vs 50+ for Max mode)
+- Lighter adversarial optimization (fewer EoT samples)
+
+### Validation Plan
+
+These requirements are initial estimates based on component model sizes and typical inference patterns. Actual requirements will be validated through telemetry during M1-M5 implementation:
+
+1. Measure peak RSS (RAM) and VRAM usage per stage
+2. Profile wall-clock time per stage at various resolutions
+3. Identify bottlenecks (compute-bound vs memory-bound vs I/O-bound)
+4. Update specifications based on measured data
+
+### Hardware References
+
+- NVIDIA Ampere GA102 GPU Architecture Whitepaper v2.1 (2020): https://www.nvidia.com/content/PDF/nvidia-ampere-ga-102-gpu-architecture-whitepaper-v2.1.pdf
+- AMD Zen 3 Architecture (Vermeer): 8-core/16-thread, 105W TDP, 3.8 GHz base / 4.7 GHz boost
 
 ## Logging and Telemetry Plan
 
@@ -359,6 +460,7 @@ All datasets used must have licenses compatible with:
 | Version | Date | Changes |
 |---------|------|---------|
 | 0.1 | 2026-01-04 | Initial threat model for M0 |
+| 0.2 | 2026-01-04 | Added formalized hardware requirements (FLOPS, RAM, VRAM, NVM) |
 
 ## Acceptance Criteria (M0)
 
