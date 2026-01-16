@@ -142,4 +142,4 @@ See [docs/threat_model.md](docs/threat_model.md) for complete references.
 
 ## Acknowledgments
 
-delocaliser is developed as part of the EditTogether project, focusing on privacy-preserving media tools.
+delocaliser is developed as part of the [EditTogether](https://github.com/EditTogether) project, a collection of crowdsourcing and crowd safety tools.
