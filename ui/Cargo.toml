@@ -1,0 +1,9 @@
+[package]
+name = "delocaliser-ui"
+version = "0.1.0"
+edition = "2021"
+description = "CLI and desktop UI for delocaliser"
+license = "GPL-3.0"
+
+[dependencies]
+delocaliser-core = { path = "../core" }

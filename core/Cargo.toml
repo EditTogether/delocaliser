@@ -1,0 +1,9 @@
+[package]
+name = "delocaliser-core"
+version = "0.1.0"
+edition = "2021"
+description = "Core pipeline orchestration for delocaliser"
+license = "GPL-3.0"
+
+[dependencies]
+# Dependencies will be added as implementation progresses

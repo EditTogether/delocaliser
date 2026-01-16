@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Roadmap Discussion
+    url: https://github.com/EditTogether/delocaliser/issues/1
+    about: View the project roadmap and milestones
+  - name: Security Vulnerability
+    url: https://github.com/EditTogether/delocaliser/security/advisories/new
+    about: Report a security vulnerability privately

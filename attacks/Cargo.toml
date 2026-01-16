@@ -1,0 +1,9 @@
+[package]
+name = "delocaliser-attacks"
+version = "0.1.0"
+edition = "2021"
+description = "Adversarial perturbation generation for delocaliser"
+license = "GPL-3.0"
+
+[dependencies]
+delocaliser-core = { path = "../core" }
