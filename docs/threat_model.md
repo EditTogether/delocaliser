@@ -2,6 +2,10 @@
 
 This document defines the threat model for delocaliser, a privacy-preserving photo post-processing tool designed to defeat visual geolocation systems while maintaining human-perceived image quality.
 
+## Executive Summary
+
+delocaliser processes images to prevent AI-based geolocators from accurately inferring location while maintaining human-perceived image quality. The system must defend against three classes of attackers: retrieval-based systems, classifier/regressor models, and reasoning-capable vision-language models (VLMs). Protection must survive common image transformations and social media compression pipelines.
+
 ## Goal
 
 Post-process any image to defeat visual geolocation systems so the predicted location is coarser than 1 degree latitude/longitude (worse than city-level), while preserving human-perceived image quality. The output must withstand common post-processing (crop/resize/JPEG) and complete within 24 hours for 4K images on a 2022 desktop in the most aggressive mode.
@@ -146,6 +150,42 @@ Protection must survive these transformations via Expectation-over-Transforms (E
 **Cross-image correlation:**
 - Combining cues from multiple images posted by same user
 - Temporal patterns (posting times, sequences)
+
+## Key Design Insight
+
+> Even if model output is moderated, users can feed extracted hints into geocoders. delocaliser must reduce *available evidence*, not just hide coordinates.
+
+This insight drives the multi-stage pipeline approach: metadata scrubbing alone is insufficient when visual cues remain. Content rewriting and adversarial perturbations must work together to reduce the information available to any attacker, human or machine.
+
+## Threat Scenarios
+
+### Scenario 1: Casual Privacy Violation
+
+**Attacker:** Individual using publicly available tools
+**Capability:** Access to consumer VLMs (ChatGPT, Claude), reverse image search
+**Goal:** Identify location of a person from their social media photos
+**Defense Priority:** High - most common threat
+
+### Scenario 2: Targeted Stalking
+
+**Attacker:** Determined individual with technical skills
+**Capability:** Multiple geolocation tools, willingness to cross-reference information
+**Goal:** Track specific individual's movements over time
+**Defense Priority:** Critical - highest harm potential
+
+### Scenario 3: Mass Surveillance
+
+**Attacker:** State actor or large organization
+**Capability:** Custom-trained models, large reference databases, significant compute
+**Goal:** Geolocate images at scale for intelligence purposes
+**Defense Priority:** Moderate - requires significant resources to counter
+
+### Scenario 4: Journalistic Source Protection
+
+**Attacker:** Adversarial government or organization
+**Capability:** State-level resources, motivation to identify sources
+**Goal:** Identify location of whistleblowers or journalists
+**Defense Priority:** Critical - life-safety implications
 
 ## Privacy Tiers
 
@@ -461,6 +501,7 @@ All datasets used must have licenses compatible with:
 |---------|------|---------|
 | 0.1 | 2026-01-04 | Initial threat model for M0 |
 | 0.2 | 2026-01-04 | Added formalized hardware requirements (FLOPS, RAM, VRAM, NVM) |
+| 0.3 | 2026-01-16 | Added executive summary, key design insight, and threat scenarios |
 
 ## Acceptance Criteria (M0)
 
