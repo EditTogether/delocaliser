@@ -129,6 +129,8 @@ Please see the issue templates for:
 - [Feature Requests](.github/ISSUE_TEMPLATE/feature_request.md)
 - [Evaluation Requests](.github/ISSUE_TEMPLATE/evaluation_request.md)
 
+For community discussions, we have a matrix room at #delocaliser:matrix.org
+
 ## References
 
 Key papers informing this project:
